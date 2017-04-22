@@ -1,0 +1,213 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="https://github.com/scalableminds/gulp-image-resize">gulp-image-resize (v0.12.0)</a>
+</h1>
+<h4>Resizing images made easy.</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.gulp-image-resize">module gulp-image-resize</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.gulp-image-resize.gulp-image-resize">
+            function <span class="apidocSignatureSpan"></span>gulp-image-resize
+            <span class="apidocSignatureSpan">(_options)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.gulp-image-resize" id="apidoc.module.gulp-image-resize">module gulp-image-resize</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.gulp-image-resize.gulp-image-resize" id="apidoc.element.gulp-image-resize.gulp-image-resize">
+        function <span class="apidocSignatureSpan"></span>gulp-image-resize
+        <span class="apidocSignatureSpan">(_options)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function imageResizer(_options) {
+
+  _options = _.defaults(_options, {
+    overwrite   : true,
+    upscale     : false,
+    crop        : false,
+    gravity     : "Center",
+    quality     : 1,
+    noProfile   : false,
+    sharpen     : false,
+    imageMagick : false,
+    format      : null,
+    flatten     : false,
+    interlace   : false,
+    percentage  : null
+  });
+
+  return gm(function(gmfile, done) {
+
+    async.waterfall([
+
+      function (callback) {
+        gmfile.size(callback);
+      },
+
+      function (size, callback) {
+
+        var options = JSON.parse(JSON.stringify(_options)); // fix: we must make a copy, because we will change it!
+
+        if (options.filter != null) {
+          gmfile = gmfile.filter(options.filter);
+        }
+
+        if (options.height != null || options.width != null) {
+
+          // if upscale is not requested, restrict size
+          if(!options.upscale){
+            if (!isNaN(options.width)) {
+              options.width  = Math.min(options.width, size.width);
+            }
+            if (!isNaN(options.height)) {
+              options.height = Math.min(options.height, size.height);
+            }
+          }
+
+          // if one dimension is not set - we fill it proportionally
+          if (!options.height) {
+            if (options.crop) {
+              options.height = size.height;
+            } else {
+              options.height = Math.ceil((options.width / size.width) * size.height);
+            }
+          }
+          if (!options.width) {
+            if (options.crop) {
+              options.width = size.width;
+            } else {
+              options.width = Math.ceil((options.height / size.height) * size.width);
+            }
+          }
+
+          if (options.crop) {
+            gmfile = gmfile
+              .resize(options.width, options.height, "^")
+              .gravity(options.gravity)
+              .crop(options.width, options.height);
+          } else {
+            gmfile = gmfile
+              .resize(options.width, options.height);
+          }
+
+        } else if (options.percentage) {
+          gmfile = gmfile
+            .resize(options.percentage, null, '%');
+        }
+
+        if (options.format) {
+          gmfile = gmfile
+            .setFormat(options.format);
+        }
+
+        if (options.quality !== 1) {
+          gmfile = gmfile.quality(Math.floor(options.quality * 100));
+        }
+
+
+        if (options.samplingFactor != null) {
+          gmfile = gmfile
+            .samplingFactor(options.samplingFactor[0], options.samplingFactor[1]);
+        }
+
+        if (options.sharpen) {
+          options.sharpen = (typeof options.sharpen === 'string') ?  options.sharpen : '1.5x1+0.7+0.02';
+          gmfile = gmfile.unsharp(options.sharpen);
+        }
+
+        if (options.flatten) {
+          gmfile = gmfile.flatten();
+        }
+
+        if (options.interlace) {
+          gmfile = gmfile.interlace('Line');
+        }
+
+        if (options.background) {
+          gmfile = gmfile.background(options.background);
+        }
+
+        if (options.noProfile) {
+          gmfile = gmfile.noProfile();
+        }
+
+        callback(null, gmfile);
+      }
+
+    ], done);
+
+  }, { imageMagick : _options.imageMagick });
+
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
